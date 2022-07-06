@@ -1,87 +1,18 @@
 # 3D_Reconstruction
-2022-1 Robot Sensor Processing Project
+## 2022-1 Robot Sensor Processing Project
 
-
-
-
-로봇센서데이터처리
-
-MID-TERM REPORT
-
-< 3D RECONSTRUCTION >
-
-
-
-
-
-
-
-
-
-~ 2022. 05. 22.
-
-
-
-
-응용물리학과 4학년
-
-2017103038 권인회
-
-
-
-
-
-
-
-
-< 목       차 >
-
-
-
-
-I . 들어가며
-
-
-II . Camera Calibration
-
-
-III . Feature Extraction & Matching
-
-
-IV . Disparity & Depth Map
-
-
-V . 3D Point Cloud Reconstruction
-
-
-VI . 마치며
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-I . 들어가며
-1) 머리말
+### I . 들어가며
+#### 1) 머리말
 두 장의 이미지를 가지고 3D로 복구하는 것은 이론상으로만 이해를 해왔고 직접 해 본 적은 없었다. 이 수업을 통해 이론을 탄탄히 배우고 중간고사 대체과제를 통해 실습을 해 볼 수 있는 기회를 맞이할 수 있었다. 실습을 하기 위해서는 사용하는 라이브러리(openCV, open3D 등)에 대한 이해가 필요하였기 때문에 그 부분을 위주로 공부하여 적용하였다.
 
-2) 사용법
-보고서를 시작하기 전, 첨부한 코드의 사용법을 명시한 뒤, 시작하려고 한다. Camera Calibration과 3D Visualization는 창으로 결과물을 확인할 수 있으며, 그 외에는 모두 파일로 출력이 된다.
+#### 2) 사용법
+시작하기 전, 첨부한 코드의 사용법을 명시한 뒤, 시작하려고 한다. Camera Calibration과 3D Visualization는 창으로 결과물을 확인할 수 있으며, 그 외에는 모두 파일로 출력이 된다.
 
-- Inputs
+#### - Inputs
 1. calibration 폴더 안에 체크보드(9x6) 이미지 6장 이상
 2. 기본 폴더 안에 스테레오 이미지 2장
 
-- Outputs
+#### - Outputs
 1. 왜곡 보정된 스테레오 이미지 2장 (stereo_left, stereo_right)
 2. SIFT 특징점 추출된 이미지 1장 (feature_extraction)
 3. 두 이미지에서 SIFT 특징점 매칭된 이미지 1장 (sift_keypoints)
@@ -89,20 +20,18 @@ I . 들어가며
 5. open3D 창을 통한 3D Visualization 창 (색상 미포함)
 6. open3D 창을 통한 3D Visualization 창 (색상 포함)
 
-- 매뉴얼
+#### - 매뉴얼
 1. 압축을 풀고 calibration 폴더 안 이미지 7장과 left, right 이미지 2장을 확인한 뒤, main.py를 실행시킨다.
 2. 처음 나타나는 open3D 창은 색상이 포함되지 않은 3D Point Cloud Visualization이며, <ESC>를 통해 종료 가능하다.
 3. 바로 다음 나타나는 open3D 창은 색상이 포함된 3D Point Cloud Visualization이며, <ESC>를 통해 종료 가능하다.
 4. 나머지 Outputs는 해당 폴더에 파일로 생성되므로 확인하면 된다.
 
+  
+  
+  
+  
 
-
-
-
-
-
-
-II . Camera Calibration
+### II . Camera Calibration
 모든 카메라에는 Intrinsic parameter가 존재한다. 처음에는 그 카메라의 제조사 및 모델을 파악하여 검색을 통해 알아내야 하는 것인 줄 알았다. 하지만, 이 Camera Calibration 과정을 통해 파악할 수 있고 이 정보를 알아야 3D 복구 및 왜곡 보정을 진행할 수 있다.
 
 
@@ -133,7 +62,7 @@ II . Camera Calibration
 
 지금 구한 이 계수들은 다음 단계에 3D reconstruction 과정에서도 이용할 예정이다.
 
-III . Feature Extraction & Matching
+### III . Feature Extraction & Matching
 다음 과정은 왼쪽 이미지와 오른쪽 이미지가 어느정도 움직였는지에 대해 파악할 필요가 있다. 따라서, 각 이미지에서 SIFT 특징점 추출을 이용하여 특징점을 찾아내고, 각 이미지가 담당하는 특징점끼리 연결하여서 어느정도의 픽셀 차이가 있는지 알아내는 과정이다. 이 정보를 토대로 Disparity를 구하는 데 기여할 것이다.
 
 sift라는 변수를 통해 SIFT 특징점 추출기를 활성화 시켜주고 각 이미지에 대해 특징점과 기술자를 생성해준다. 그리고 cv2.drawKeypoints 함수를 이용하여 이미지에 특징점을 표시하여 나타내준다. 두 이미지의 특징점을 매칭하기 위해서는 cv2.BFMatcher 함수를 이용하면 되고, 거리 측정법에 대해서는 가장 기본적인 유클리드 거리 측정법을 사용하였다. 
@@ -142,7 +71,7 @@ sift라는 변수를 통해 SIFT 특징점 추출기를 활성화 시켜주고 �
 
 카메라를 수평 방향으로만 움직였기 때문에 특징점 매칭을 보면 모두 수평한 직선으로 이루어져있어야 좋은 결과라고 할 수 있지만 간간히 그렇지 않은 직선들이 보이는 것을 확인할 수 있다. 이러한 이유 때문에 3D 복구 과정에서 노이즈가 발생할 수 있다. 그렇지만 해당 과정은 라이브러리가 잘 구성되어 있고 사용법도 쉬워 문제를 잘 해결할 수 있었다.
 
-IV . Disparity & Depth Map
+### IV . Disparity & Depth Map
 
 
 < 그림 2 – disparity 식 >
@@ -163,7 +92,7 @@ Disparity는 다음과 같은 공식에 의해 구할 수 있다. Depth를 나�
 
 왼쪽이 Disparity Map, 오른쪽이 Depth Map인데 가까울수록 Depth값이 낮고 (검정색) 멀수록 Depth값이 높아 (흰색) 잘 만들어진 것을 확인할 수 있다. 물론 흰색 부분에 대해서는 Unknown 영역이라고 생각할 수 있다.
 
-V . 3D Point Cloud Reconstruction
+### V . 3D Point Cloud Reconstruction
 
 < 그림 3 – Camera Coordinate Projection >
 
@@ -185,8 +114,8 @@ V . 3D Point Cloud Reconstruction
 
 이미지를 다시 불러와서 opencv에서는 이미지를 BGR 순으로 저장하고 있기 때문에 RGB 순으로 변경해주고 open3D에서는 색상의 값을 0~255가 아닌 0~1의 값으로 사용하고 있기 때문에 255로 나눠준 뒤, size를 다시 맞춰준 뒤 아까 점 리스트에 대해 했던 것처럼 필터링을 거쳐 해당하는 index만 남겨둔다. 이후 점 리스트의 index에 맞게 그 점에 대한 색상이 부여가 되기 때문에 이후에 다시 visualization을 하면 색상까지 올바르게 포함된 것을 확인할 수 있다.
 
-VI . 마치며
-1) 느낀점 및 소감
+### VI . 마치며
+#### 1) 느낀점 및 소감
 생각보다 만족스러운 결과가 나오지 못했다. reference를 통해서 3D 복원이 된 모습을 봤었는데 그만큼 정확하게 나오지 않은 것 같다. 하지만, 여러 가지 오차가 있을 수 있다는 점을 확인했을 때는 이 정도면 매우 훌륭한 복원이라고 생각한다. 우선, 화면상에서 앞에 있던 키보드와 책이 3D 복원을 했을 때, 앞쪽에 형성되어있고 책장이 뒤쪽에 형성되어 있는 이 정도 구분을 해냈다면 성공적인 것 같다.
 
 하지만 비어있는 공간이 많은 것처럼 이유를 생각해보면, 아마 textureless가 가장 큰 영향을 끼쳤을 것이라고 생각한다. 최대한 texture가 많은 공간에 대해 사진을 찍으려고 하였으나 그래도 이미지 내에 textureless 공간이 없도록 사진을 촬영하는 것은 어려움이 있었고 집 안에서 카메라를 정밀하게 조정할 수 있으면서 찍을 수 있는 사진의 최적이었다. 따라서, 책장 옆의 벽지나 모니터 화면의 경우에는 비어있는 것을 확인할 수 있다.
@@ -197,7 +126,7 @@ VI . 마치며
 
 그리고 또 의아한 점이 카메라가 얼마나 이동했는지, 그리고 체크보드의 한 칸이 몇 mm로 이루어져 있는지 미리 체크를 해두었는데 이를 어디에 사용하는 것인지 확인하지 못 하였다. 처음엔 캘리브레이션을 위한 criteria 값에 넣는 것인줄 알았는데 이 값을 변경하여도 아무런 변화는 없었다. 또한 disparity를 계산하는 과정에서 넣는 parameter에서도 확인할 수 없었다. 아무래도 reference에서 확인했을 때는 Baseline을 포함하여 계산하는 과정이 있었던 것으로 확인했는데, 라이브러리의 요구사항에 포함이 되지는 않는 것 같았다. 그럼에도 좋은 결과가 나왔기에 이렇게 마무리를 짓는다.
 
-2) 참조
+#### 2) 참조
 1. 그림 1 : (https://learnopencv.com/camera-calibration-using-opencv/)
 2. 그림 2 : (https://docs.opencv.org/4.x/dd/d53/tutorial_py_depthmap.html)
 3. 그림 3 : (https://www.cse.psu.edu/~rtc12/CSE486/lecture12.pdf)
